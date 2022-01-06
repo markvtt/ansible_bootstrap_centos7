@@ -1,74 +1,11 @@
 - hosts: localhost
   become: true
+  pre_tasks:
+    - name: update repositories
+      apt: update_cache=yes
+      changed_when: False 
   tasks:
+    - include: tasks/common.yml
+    - include: tasks/kvm.yml
 
-  - name: Ensure SELinux is set to permissive mode
-    lineinfile:
-      path: /etc/selinux/config
-      regexp: '^SELINUX='
-      line: SELINUX=permissive    
 
-  - name: Install common packages
-    package:
-      name:
-        - wget
-        - bind-utils
-      state: present
-
-  - name: Install NUX key
-    rpm_key: 
-      key: http://li.nux.ro/download/nux/RPM-GPG-KEY-nux.ro
-      state: present
-
-  - name: Install NUX rpm from a remote repo
-    yum:
-      name: http://li.nux.ro/download/nux/dextop/el7/x86_64/nux-dextop-release-0-5.el7.nux.noarch.rpm
-      state: present
-
-  - name: Add KVM repo that contains latest version
-    yum_repository:
-      name: kvm-common
-      description: KVM common repo      
-      file: kvm-common
-      baseurl: http://mirror.centos.org/centos/7/virt/x86_64/kvm-common/
-      gpgcheck: no
-
-  - name: Install KVM
-    package:
-      name:
-        - qemu-kvm
-        - libvirt
-        - libvirt-python
-        - libguestfs-tools
-        - virt-install
-        - virt-manager
-      state: present    
-  - name: Create kvm-intel options if it doesn't exist   
-    copy:
-      content: "options kvm-intel nested=y"
-      dest: /etc/modprobe.d/dist.conf
-  - name: Ensure kvm-intel nested virtulization enabled     
-    lineinfile:
-      path: /etc/modprobe.d/dist.conf
-      line: "options kvm-intel nested=y"
-  - name: Add kvm-intel module
-    modprobe:
-      name: kvm-intel
-      state: present
-  - name: Enable libvirtd
-    systemd:
-      name: libvirtd
-      enabled: yes
-  - name: Start libvirtd
-    systemd:
-      name: libvirtd
-      state: started
-  - name: KVM .bashrc variables
-    blockinfile:
-      dest: "~/.bashrc"
-      block: |
-        export LIBGUESTFS_BACKEND=direct
-        alias lvms='cd /var/lib/libvirt/vms'
-      marker: '# {mark} ANSIBLE MANAGED BLOCK - kvm'
-      insertbefore: BOF
-      create: yes

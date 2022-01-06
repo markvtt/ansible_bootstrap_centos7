@@ -1,0 +1,21 @@
+- name: Ensure SELinux is set to permissive mode
+  lineinfile:
+    path: /etc/selinux/config
+    regexp: '^SELINUX='
+    line: SELINUX=permissive    
+
+- name: Install common packages
+  package:
+    name:
+      - wget
+      - bind-utils
+    state: present
+
+- name: Install NUX key
+  rpm_key: 
+    key: http://li.nux.ro/download/nux/RPM-GPG-KEY-nux.ro
+    state: present
+- name: Install NUX rpm from a remote repo
+  yum:
+    name: http://li.nux.ro/download/nux/dextop/el7/x86_64/nux-dextop-release-0-5.el7.nux.noarch.rpm
+    state: present
