@@ -1,0 +1,9 @@
+- hosts: localhost
+  become: true
+  tasks:
+  - name: Install common packages
+    package:
+      name:
+        - wget
+        - bind-utils
+      state: present
