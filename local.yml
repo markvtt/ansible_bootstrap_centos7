@@ -24,3 +24,50 @@
     yum:
       name: http://li.nux.ro/download/nux/dextop/el7/x86_64/nux-dextop-release-0-5.el7.nux.noarch.rpm
       state: present
+
+  - name: Add KVM repo that contains latest version
+    yum_repository:
+      name: kvm-common
+      description: KVM common repo      
+      file: kvm-common
+      baseurl: http://mirror.centos.org/centos/7/virt/x86_64/kvm-common/
+      gpgcheck: no
+
+  - name: Install KVM
+    package:
+      name:
+        - qemu-kvm
+        - libvirt
+        - libvirt-python
+        - libguestfs-tools
+        - virt-install
+      state: present    
+  - name: Create kvm-intel options if it doesn't exist   
+    copy:
+      content: "options kvm-intel nested=y"
+      dest: /etc/modprobe.d/dist.conf
+  - name: Ensure kvm-intel nested virtulization enabled     
+    lineinfile:
+      path: /etc/modprobe.d/dist.conf
+      line: "options kvm-intel nested=y"
+  - name: Add kvm-intel module
+    modprobe:
+      name: kvm-intel
+      state: present
+  - name: Enable libvirtd
+    systemd:
+      name: libvirtd
+      enabled: yes
+  - name: Start libvirtd
+    systemd:
+      name: libvirtd
+      state: started
+  - name: KVM .bashrc variables
+    blockinfile:
+      dest: "~/.bashrc"
+      block: |
+        export LIBGUESTFS_BACKEND=direct
+        alias lvms='cd /var/lib/libvirt/vms'
+      marker: '# {mark} ANSIBLE MANAGED BLOCK - kvm'
+      insertbefore: BOF
+      create: yes
