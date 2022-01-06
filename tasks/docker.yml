@@ -1,0 +1,13 @@
+- name: Install KVM
+  package:
+    name:
+      - docker
+- name: Enable docker
+  systemd:
+    name: docker
+    enabled: yes
+- name: Start docker
+  systemd:
+    name: docker
+    state: started
+
