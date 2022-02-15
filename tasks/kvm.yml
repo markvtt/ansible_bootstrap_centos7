@@ -14,7 +14,7 @@
       - libguestfs-tools
       - virt-install
       - virt-manager
-      - cloud-localds
+      - cloud-utils
     state: present    
 - name: Create kvm-intel options if it doesn't exist   
   copy:
